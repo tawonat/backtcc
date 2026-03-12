@@ -11,6 +11,10 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false } // Necessário para o Render
 });
 
+app.get('/', (req, res) => {
+    res.status(200).send("Servidor do TCC online e acordado! 🚀");
+  });
+
 app.post('/registro', async (req, res) => {
     const { rfid } = req.body;
     if (!rfid) return res.json({ permitido: false });
