@@ -1,18 +1,27 @@
 require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
-const cors = require('cors'); // ✨ ADICIONADO: Para liberar o acesso do seu App
+const cors = require('cors');
 
 const app = express();
-app.use(cors()); // ✨ ADICIONADO: Ativa o CORS no servidor
+app.use(cors());
 app.use(express.json());
 
-// Configuração para o Postgres do Render (Funciona localmente e na nuvem!)
+// 🛠️ CORREÇÃO DO BANCO: Configuração robusta de SSL para o Render
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false } 
+    ssl: {
+        rejectUnauthorized: false,
+        // Força o Node.js a manter a conexão viva e segura
+        keepAlive: true 
+    },
+    // Tempo máximo que uma conexão pode ficar ociosa antes de fechar
+    idleTimeoutMillis: 30000, 
+    // Tempo máximo para conseguir abrir uma conexão
+    connectionTimeoutMillis: 2000, 
 });
 
+// O resto do seu código (app.get, app.post, app.listen) continua IGUALZINHO...
 app.get('/', (req, res) => {
     res.status(200).send("Servidor do TCC online e acordado! 🚀");
 });
@@ -32,13 +41,13 @@ app.post('/registro', async (req, res) => {
             await pool.query('INSERT INTO registros_acesso (usuario_id) VALUES ($1)', [usuario.id]);
             
             console.log(`✅ Liberado: ${usuario.nome}`);
-            return res.json({ permitido: true, mensagem: `Olá, ${usuario.nome}` });
+            return res.json({ permitido: true, mensaje: `Olá, ${usuario.nome}` });
         } else {
             console.log(`❌ Negado: ${rfid}`);
             return res.json({ permitido: false });
         }
     } catch (err) {
-        console.error(err);
+        console.error("Erro interno no banco:", err.message); // Melhorado para ler o erro limpo
         res.status(500).send("Erro no banco");
     }
 });
