@@ -1,26 +1,27 @@
 require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
+const cors = require('cors'); // ✨ ADICIONADO: Para liberar o acesso do seu App
 
 const app = express();
+app.use(cors()); // ✨ ADICIONADO: Ativa o CORS no servidor
 app.use(express.json());
 
-// Configuração para o Postgres do Render
+// Configuração para o Postgres do Render (Funciona localmente e na nuvem!)
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false } // Necessário para o Render
+    ssl: { rejectUnauthorized: false } 
 });
 
 app.get('/', (req, res) => {
     res.status(200).send("Servidor do TCC online e acordado! 🚀");
-  });
+});
 
 app.post('/registro', async (req, res) => {
     const { rfid } = req.body;
     if (!rfid) return res.json({ permitido: false });
 
     try {
-        // No Postgres usamos $1
         const result = await pool.query(
             'SELECT id, nome FROM usuarios WHERE rfid_tag = $1 AND ativo = TRUE',
             [rfid]
@@ -43,4 +44,4 @@ app.post('/registro', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor na porta ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor rodando localmente na porta ${PORT}`));
