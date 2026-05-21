@@ -7,10 +7,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🛠️ ATUALIZADO: Inicialização limpa do Pool. 
-// O SSL agora é gerenciado diretamente pela string de conexão do .env
+// A forma oficial e recomendada pelo Render para conectar localmente
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false // Ignora a paranoia do certificado local
+    }
 });
 
 app.get('/', (req, res) => {
