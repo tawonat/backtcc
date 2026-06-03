@@ -1,18 +1,21 @@
 require('dotenv').config();
 const express = require('express');
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 const cors = require('cors');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// A forma oficial e recomendada pelo Render para conectar localmente
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false // Ignora a paranoia do certificado local
-    }
+// Conexão com MySQL local (use .env para configurar)
+const pool = mysql.createPool({
+    host: process.env.MYSQL_HOST || '127.0.0.1',
+    user: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || '',
+    database: process.env.MYSQL_DATABASE || 'tcc',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
 app.get('/', (req, res) => {
@@ -24,15 +27,15 @@ app.post('/registro', async (req, res) => {
     if (!rfid) return res.json({ permitido: false });
 
     try {
-        const result = await pool.query(
-            'SELECT id, nome FROM usuarios WHERE rfid_tag = $1 AND ativo = TRUE',
+        const [rows] = await pool.query(
+            'SELECT id, nome FROM professores WHERE rfid = ? AND ativo = 1',
             [rfid]
         );
 
-        if (result.rows.length > 0) {
-            const usuario = result.rows[0];
-            await pool.query('INSERT INTO registros_acesso (usuario_id) VALUES ($1)', [usuario.id]);
-            
+        if (rows.length > 0) {
+            const usuario = rows[0];
+            await pool.query('INSERT INTO registros_acessos (professores_id) VALUES (?)', [usuario.id]);
+
             console.log(`✅ Liberado: ${usuario.nome}`);
             return res.json({ permitido: true, mensagem: `Olá, ${usuario.nome}` });
         } else {
