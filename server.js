@@ -11,15 +11,15 @@ app.use(express.json());
 const pool = mysql.createPool({
     host: process.env.MYSQL_HOST || '127.0.0.1',
     user: process.env.MYSQL_USER || 'root',
-    password: process.env.MYSQL_PASSWORD || '',
-    database: process.env.MYSQL_DATABASE || 'tcc',
+    password: process.env.MYSQL_PASSWORD || 'root',
+    database: process.env.MYSQL_NAME || 'facialtcc',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
 });
 
 app.get('/', (req, res) => {
-    res.status(200).send("Servidor do TCC online e acordado! 🚀");
+    res.status(200).send("Servidor ta online!");
 });
 
 app.post('/registro', async (req, res) => {
@@ -49,4 +49,4 @@ app.post('/registro', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor rodando localmente na porta ${PORT}`));
+app.listen(PORT, () => console.log(`Servidor rodando localm na porta ${PORT}`));
